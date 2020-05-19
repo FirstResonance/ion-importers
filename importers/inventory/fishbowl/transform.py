@@ -28,6 +28,7 @@ def parse_input_csv(file_path: str, file_name: str) -> object:
     """Parse an input CSV into an ION formatted dataframe."""
     rows = []
     row = None
+    quantity_col_idx = None
     # Read in as bytes to fix any decoding errors in utf-8
     with open(os.path.join(file_path, file_name), 'rb') as file_bytes:
         for idx, row_bytes in enumerate(file_bytes):
@@ -35,10 +36,13 @@ def parse_input_csv(file_path: str, file_name: str) -> object:
             csv_row = next(csv.reader([decode(row_bytes, errors='replace')]))
             if idx == 0:
                 row_idxs, headers = _get_header_info(csv_row)
+                if 'quantity' in headers:
+                    quantity_col_idx = headers.index('quantity')
                 continue
             # If the row length is one then its a serial number
             if len(csv_row) == 1:
-                row, skip = _handle_serial_number_rows(csv_row, rows, row)
+                row, skip = _handle_serial_number_rows(csv_row, rows, row,
+                                                       quantity_col_idx)
                 if skip is True:
                     continue
             else:
@@ -48,13 +52,15 @@ def parse_input_csv(file_path: str, file_name: str) -> object:
     return pd.DataFrame(rows, columns=headers)
 
 
-def _handle_serial_number_rows(csv_row: list, rows: list, row: list) -> (list, bool):
+def _handle_serial_number_rows(csv_row: list, rows: list, row: list,
+                               quantity_col_idx: int) -> (list, bool):
     """Handle serial number rows."""
     if csv_row[0] == 'Serial Number':
         rows[-1][3] = 0
-        return deepcopy(rows[-1]), True
+        return rows.pop(-1), True
     row = deepcopy(row)
     row[-1] = csv_row[0]
+    row[quantity_col_idx] = 1
     return row, False
 
 
