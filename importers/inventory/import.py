@@ -162,10 +162,56 @@ def create_bulk_upload_request(auth_token: str, **kwargs) -> dict:
     return bulk_upload_data
 
 
+def create_api_query_request(auth_token: str, query_type: str, query_field: str,
+                             query_vals: list) -> dict:
+    """Create an API bulk query request and return response."""
+    headers = {'Authorization': f'{auth_token}', 'Content-Type': 'application/json'}
+    # Loop through kwargs and add them as request inputs
+    query_info = {
+        'query': query_type,
+        'variables': {
+            'filters': {query_field: {'in': query_vals}}
+        }
+    }
+    req_data = json.dumps(query_info)
+    res = requests.post(urljoin(API_URL, 'graphql'), headers=headers, data=req_data)
+    query_data = json.loads(res.text)
+    for operation in query_data['data'].values():
+        vals = [edge['node'] for edge in operation['edges']]
+    return vals
+
+
 def get_parts_df(input_file: str) -> object:
     """Get dataframe from file location."""
     df = pd.read_csv(input_file)
     return df
+
+
+def get_existing_items(auth_token: str, values: list, unique_field: str, query_type: str,
+                       cache_type: str, cache: dict):
+    """Get existing items already within ion."""
+    query = getattr(mutations, query_type)
+    indices_to_pop = []
+    cache[cache_type] = {}
+    object_dict = {val.get(unique_field): idx for idx, val in enumerate(values)}
+    query_result = create_api_query_request(
+        auth_token=auth_token, query_type=query, query_field=unique_field,
+        query_vals=list(object_dict.keys()))
+    for item in query_result:
+        object_id = item.get(unique_field)
+        if object_id in object_dict:
+            indices_to_pop.append(object_dict[object_id])
+            cache[cache_type][object_id] = item
+    _pop_objects(indices_to_pop, values)
+    return values, cache
+
+
+def _pop_objects(indices_to_pop, objects):
+    """Remove objects from a list based on their index."""
+    indices_to_pop.sort()
+    for idx, pop_idx in enumerate(indices_to_pop):
+        objects.pop(pop_idx - idx)
+    return objects
 
 
 if __name__ == "__main__":
@@ -180,12 +226,22 @@ if __name__ == "__main__":
     to_upload = create_upload_items(df, to_upload)
     # Get API token
     access_token = get_access_token()
+    cache = {}
+    # Get pre existing uoms
+    to_upload['uoms'], cache = get_existing_items(
+        auth_token=access_token, values=to_upload['uoms'], unique_field='type',
+        query_type='GET_UNITS_OF_MEASUREMENTS', cache_type='unit_of_measurement',
+        cache=cache)
+    # Get pre existing locations
+    to_upload['locations'], cache = get_existing_items(
+        auth_token=access_token, values=to_upload['locations'], unique_field='name',
+        query_type='GET_LOCATIONS', cache_type='location', cache=cache)
     # Upload parts, units of measurment and locations
     resp = create_bulk_upload_request(
         access_token, CREATE_UNITS_OF_MEASUREMENT=to_upload['uoms'],
         CREATE_PART=to_upload['parts'], CREATE_LOCATION=to_upload['locations'])
     # Fill cache with ids from newely created objects
-    cache = update_cache(resp, {})
+    cache = update_cache(resp, cache)
     to_upload = fill_from_cache(to_upload=to_upload, cache=cache,
                                 to_fill=['parts_inventories'])
     # Upload part inventories and part lots
