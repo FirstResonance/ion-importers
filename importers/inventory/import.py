@@ -5,6 +5,7 @@ import sys
 import os
 import json
 import argparse
+import logging
 import requests
 import pandas as pd
 from urllib.parse import urljoin
@@ -12,6 +13,8 @@ sys.path.append(os.getcwd())
 from importers import get_access_token, API_URL # noqa
 from importers import mutations # noqa
 
+logging.basicConfig(level=logging.INFO,
+                    format='[%(asctime)s] - [%(levelname)s] - %(message)s')
 # Compiled regular expression to convert camel case to snake case
 to_snake_case = re.compile(r'(?<!^)(?=[A-Z])')
 
@@ -152,14 +155,30 @@ def create_bulk_upload_request(auth_token: str, **kwargs) -> dict:
     mutation_inputs = []
     # Loop through kwargs and add them as request inputs
     for mutation_name in kwargs:
+        mutation_values = kwargs.get(mutation_name)
         mutation = getattr(mutations, mutation_name)
-        for mutation_input in kwargs.get(mutation_name):
+        for mutation_input in mutation_values:
             mutation_inputs.append(
                 {'query': mutation, 'variables': {'input': mutation_input}})
     req_data = json.dumps(mutation_inputs)
     res = requests.post(urljoin(API_URL, 'graphql'), headers=headers, data=req_data)
     bulk_upload_data = json.loads(res.text)
+    log_mutation_resp(bulk_upload_data)
     return bulk_upload_data
+
+
+def log_mutation_resp(bulk_upload_data):
+    logging_dict = {}
+    for mutation in bulk_upload_data:
+        if 'errors' in mutation:
+            logging.warning(mutation['errors'][0]['message'])
+            continue
+        for val in mutation['data']:
+            if val not in logging_dict:
+                logging_dict[val] = 0
+            logging_dict[val] += 1
+    for mutation_name, count in logging_dict.items():
+        logging.info(f'Ran {mutation_name} mutation {count} times.')
 
 
 def create_api_query_request(auth_token: str, query_type: str, query_field: str,
@@ -214,14 +233,10 @@ def _pop_objects(indices_to_pop, objects):
     return objects
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description='Import transformed CSV into the ION inventory system.')
-    parser.add_argument('input_file', type=str,
-                        help='Path to transformed CSV to be imported.')
-    args = parser.parse_args()
+def import_values(args):
     input_file = args.input_file
     df = get_parts_df(input_file)
+    logging.info('Starting part importer.')
     to_upload = get_upload_dict(df)
     to_upload = create_upload_items(df, to_upload)
     # Get API token
@@ -247,3 +262,13 @@ if __name__ == "__main__":
     # Upload part inventories and part lots
     resp = create_bulk_upload_request(
         access_token, CREATE_PART_INVENTORY=to_upload['parts_inventories'],)
+    logging.info('Importing finished!')
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='Import transformed CSV into the ION inventory system.')
+    parser.add_argument('input_file', type=str,
+                        help='Path to transformed CSV to be imported.')
+    args = parser.parse_args()
+    import_values(args)
