@@ -114,7 +114,7 @@ def _get_parts_info(access_token: str, df: pd.DataFrame,
 def _create_mbom_item(access_token: str, row: Tuple,
                       part_dict: dict, part_numbers: dict) -> None:
     """
-    Create MBoM item from row in SolidWorks BOM export.
+    Create MBOM item from row in SolidWorks BOM export.
 
     Args:
         access_token (str): Auth token to access API
@@ -167,7 +167,7 @@ def _get_part_info(row: Tuple) -> dict:
 def _create_mbom_items(access_token: str, df: pd.DataFrame,
                        part_dict: dict, part_numbers: dict) -> None:
     """
-    Create MBoM items for every row in the SolidWorks BOM export.
+    Create MBOM items for every row in the SolidWorks BOM export.
 
     Args:
         access_token (str): Auth token to access API
@@ -189,8 +189,8 @@ def main(args: object) -> None:
     """
     Parse SolidWorks BOM export into pandas DataFrame.
 
-    Upload each row from the excel file into ION as an MBoM item. If the part being
-    referenced by the MBoM item does not exist, create that as well.
+    Upload each row from the excel file into ION as an MBOM item. If the part being
+    referenced by the MBOM item does not exist, create that as well.
 
     Args:
         args (object): Arguments parsed from command line
