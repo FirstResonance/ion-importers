@@ -121,9 +121,6 @@ def _create_mbom_item(access_token: str, row: Tuple,
         row (Tuple): Row from SolidWorks BOM export.
         part_dict (dict): Mapping from SolidWorks part level to part id
         part_numbers (dict): Mapping from part number to part id
-
-    Raises:
-        ValueError: Raise if MBoM item fails unique contraint on part_id and parent_id
     """
     headers = _get_headers(access_token)
     mbom_info = {'partId': part_numbers[row['Part Number']], 'quantity': row['Qty']}
@@ -146,7 +143,7 @@ def _create_mbom_item(access_token: str, row: Tuple,
         if 'not unique' in err:
             err = (f'Failed to import BOM item {row._name} because item with part number'
                    f' {row["Part Number"]} and parent {parent_level} already exists.')
-        raise ValueError(err)
+        logging.warning(err)
 
 
 def _get_part_info(row: Tuple) -> dict:
