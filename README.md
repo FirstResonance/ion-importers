@@ -61,7 +61,7 @@ python importers/inventory/fishbowl/transform.py /path/to/fishbowl/csvs --output
 
 ### SolidWorks excel BOM export
 
-To import a BOM from SolidWorks first make sure it is exported as an excel file, that can be done by following the instructions found [here](https://help.solidworks.com/2019/english/SolidWorks/sldworks/t_Saving_BOMs.htm). Be sure to follow the convention of keeping the filename as the Part Number for the BOM export's top level part.
+To import a BOM from SolidWorks, first make sure it is exported as an Excel (.xlsx) file. That can be done by following the instructions found [here](https://help.solidworks.com/2019/english/SolidWorks/sldworks/t_Saving_BOMs.htm). Be sure to follow the convention of keeping the filename as the Part Number for the BOM export's top level part.
 
 The importer will create a corresponding MBOM item for every entry in the exported BOM, following the same hierarchy. If the part referenced by the BOM item does not exist within the ION ecosystem, then the part will be created in ION as well.
 
