@@ -185,7 +185,7 @@ def _create_mbom_items(access_token: str, df: pd.DataFrame,
         _create_mbom_item(access_token, row, part_dict, part_numbers)
 
 
-def main(args: object) -> None:
+def import_bom(input_file: str) -> None:
     """
     Parse SolidWorks BOM export into pandas DataFrame.
 
@@ -193,10 +193,10 @@ def main(args: object) -> None:
     referenced by the MBOM item does not exist, create that as well.
 
     Args:
-        args (object): Arguments parsed from command line
+        input_file (str): Path to SolidWorks BOM to be imported
     """
     # Read SolidWorks Level as string to correctly parse hierarchy.
-    df = pd.read_excel(args.input_file, dtype={'Level': str})
+    df = pd.read_excel(input_file, dtype={'Level': str})
     # Use level as index
     df.set_index('Level', inplace=True)
     # Get top level part from file name
@@ -213,4 +213,4 @@ if __name__ == "__main__":
     parser.add_argument('input_file', type=str,
                         help='Path to SolidWorks BOM excel file.')
     args = parser.parse_args()
-    main(args)
+    import_bom(args.input_file)
