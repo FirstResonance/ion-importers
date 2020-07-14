@@ -194,6 +194,9 @@ def import_bom(input_file: str) -> None:
 
     Args:
         input_file (str): Path to SolidWorks BOM to be imported
+
+    Returns:
+        bool: Returns true if the BOM was successfully imported
     """
     # Read SolidWorks Level as string to correctly parse hierarchy.
     df = pd.read_excel(input_file, dtype={'Level': str})
@@ -205,6 +208,7 @@ def import_bom(input_file: str) -> None:
     access_token = get_access_token()
     part_dict, part_numbers = _get_parts_info(access_token, df, top_level_part_number)
     _create_mbom_items(access_token, df, part_dict, part_numbers)
+    return True
 
 
 if __name__ == "__main__":
