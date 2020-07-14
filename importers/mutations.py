@@ -59,3 +59,21 @@ query GetLocations($filters: LocationsInputFilters, $sort: [LocationSortEnum]) {
     }
 }
 '''
+
+
+CREATE_MBOM_ITEM = '''
+mutation($input: CreateMBomItemInput!){
+  createMbomItem(input: $input){
+      mbomItem { id }
+  }
+}
+'''
+
+
+GET_PARTS = '''
+query GetParts($filters: PartsInputFilters) {
+    parts(filters: $filters) {
+        edges {node {id partNumber}}
+    }
+}
+'''
