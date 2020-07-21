@@ -80,5 +80,5 @@ Supported Fields for created Parts:
 
 Run SolidWorks BOM importer:
 ```
-python importers/bom/solidworks/import.p /path/to/solid_works/excel.xlsx
+python importers/bom/solidworks/import.py /path/to/solidworks/excel.xlsx
 ```
