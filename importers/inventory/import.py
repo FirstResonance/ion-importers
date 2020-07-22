@@ -5,12 +5,13 @@ import sys
 import os
 import json
 import argparse
+import getpass
 import logging
 import requests
 import pandas as pd
 from urllib.parse import urljoin
 sys.path.append(os.getcwd())
-from importers import get_access_token, API_URL # noqa
+from importers import Api, API_URL # noqa
 from importers import mutations # noqa
 
 logging.basicConfig(level=logging.INFO,
@@ -195,6 +196,7 @@ def create_api_query_request(auth_token: str, query_type: str, query_field: str,
     req_data = json.dumps(query_info)
     res = requests.post(urljoin(API_URL, 'graphql'), headers=headers, data=req_data)
     query_data = json.loads(res.text)
+    vals = []
     for operation in query_data['data'].values():
         vals = [edge['node'] for edge in operation['edges']]
     return vals
@@ -233,14 +235,13 @@ def _pop_objects(indices_to_pop, objects):
     return objects
 
 
-def import_values(args):
-    input_file = args.input_file
+def import_values(api: Api, input_file: str) -> None:
     df = get_parts_df(input_file)
     logging.info('Starting part importer.')
     to_upload = get_upload_dict(df)
     to_upload = create_upload_items(df, to_upload)
     # Get API token
-    access_token = get_access_token()
+    access_token = api.get_access_token()
     cache = {}
     # Get pre existing uoms
     to_upload['uoms'], cache = get_existing_items(
@@ -270,5 +271,10 @@ if __name__ == "__main__":
         description='Import transformed CSV into the ION inventory system.')
     parser.add_argument('input_file', type=str,
                         help='Path to transformed CSV to be imported.')
+    parser.add_argument('--client_id', type=str, help='Your API client ID')
     args = parser.parse_args()
+    client_secret = getpass('Client secret: ')
+    if not args.client_id or not client_secret:
+        raise('Must input client ID and client secret to run import')
+    api = Api(client_id=args.client_id, client_secret=client_secret)
     import_values(args)
