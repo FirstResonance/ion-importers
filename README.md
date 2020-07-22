@@ -2,11 +2,7 @@
 Import your data into ion from existing systems - PLM, spreadsheets, etc.
 
 ## Authentication
-The API is protected with JWT token authentication, powered by Auth0. Users must be authenticated to retrieve any resource. The importer currently only supports machine to machine authentication using a client id and client secret. To run the import scripts set the following env variables.
-```shell script
-export ION_IMPORTER_CLIENT_ID='<your-ion-client-id>'
-export ION_IMPORTER_CLIENT_SECRET='<your-ion-client-secret>'
-```
+The API is protected with JWT token authentication, powered by Auth0. Users must be authenticated to retrieve any resource. The importer currently only supports machine to machine authentication using a client id and client secret. To run the import scripts set the following env variables. You can get your client ID and secret by contacting First Resonance (software@firstresonance.io). If you are targeting a non-production API, set your  `ION_API_AUDIENCE` to the API audience for the target API.
 
 ## Setup
 
@@ -34,7 +30,7 @@ pip install -r requirements.txt
 
 To import any transformed inventory CSV into ION run the following command.
 ```
-python importers/inventory/import.py /path/to/upload.csv
+python importers/inventory/import.py /path/to/upload.csv --client_id <YOUR_CLIENT_ID>
 ```
 
 ### Fishbowl Transformer
@@ -80,5 +76,5 @@ Supported Fields for created Parts:
 
 Run SolidWorks BOM importer:
 ```
-python importers/bom/solidworks/import.py /path/to/solidworks/excel.xlsx
+python importers/bom/solidworks/import.py /path/to/solidworks/excel.xlsx --client_id <YOUR_CLIENT_ID>
 ```
