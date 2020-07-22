@@ -2,6 +2,7 @@
 
 import json
 import argparse
+from getpass import getpass
 import logging
 import requests
 import pandas as pd
@@ -10,7 +11,7 @@ from typing import Tuple
 import sys
 import os
 sys.path.append(os.getcwd())
-from importers import get_access_token, API_URL # noqa
+from importers import API_URL, Api # noqa
 from importers import mutations # noqa
 
 logging.basicConfig(level=logging.INFO,
@@ -185,7 +186,7 @@ def _create_mbom_items(access_token: str, df: pd.DataFrame,
         _create_mbom_item(access_token, row, part_dict, part_numbers)
 
 
-def import_bom(input_file: str) -> None:
+def import_bom(api: Api, input_file: str) -> None:
     """
     Parse SolidWorks BOM export into pandas DataFrame.
 
@@ -204,8 +205,11 @@ def import_bom(input_file: str) -> None:
     df.set_index('Level', inplace=True)
     # Get top level part from file name
     top_level_part_number = args.input_file.split('/')[-1].split('.')[0]
+
+    # TODO: Replace access token fetching with just using the Api object 
+    # and abstract access tokens and requests from business logic
     # Get API token
-    access_token = get_access_token()
+    access_token = api.get_access_token()
     part_dict, part_numbers = _get_parts_info(access_token, df, top_level_part_number)
     _create_mbom_items(access_token, df, part_dict, part_numbers)
     return True
@@ -216,5 +220,10 @@ if __name__ == "__main__":
         description='Import SolidWorks BOM exported as an excel file into ION.')
     parser.add_argument('input_file', type=str,
                         help='Path to SolidWorks BOM excel file.')
+    parser.add_argument('--client_id', type=str, help='Your API client ID')
     args = parser.parse_args()
-    import_bom(args.input_file)
+    client_secret = getpass('Client secret: ')
+    if not args.client_id or not client_secret:
+        raise argparse.ArgumentError('Must input client ID and client secret to run import')
+    api = Api(client_id=args.client_id, client_secret=client_secret)
+    import_bom(api, args.input_file)
