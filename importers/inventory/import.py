@@ -275,6 +275,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     client_secret = getpass('Client secret: ')
     if not args.client_id or not client_secret:
-        raise('Must input client ID and client secret to run import')
+        raise argparse.ArgumentError('Must input client ID and client secret to run import')
     api = Api(client_id=args.client_id, client_secret=client_secret)
     import_values(args)
