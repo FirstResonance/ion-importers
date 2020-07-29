@@ -78,3 +78,18 @@ Run SolidWorks BOM importer:
 ```
 python importers/bom/solidworks/import.py /path/to/solidworks/excel.xlsx --client_id <YOUR_CLIENT_ID>
 ```
+
+## Runs
+
+### Bulk Run CSV
+
+Runs can be bulk imported from a CSV format.
+
+The importer will create serial tracked inventory instances for each serial number within the CSV. The part which the inventory entries reference must be previously created.
+
+If no title is specified in the CSV, then a default title is generated using the format `<Part number> - <Serial number> - <Procedure title>`.
+
+Execute Bulk Run CSV importer:
+```
+python importers/run/csv/import.py /path/to/run.csv --client_id <YOUR_CLIENT_ID>
+```
