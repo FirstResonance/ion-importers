@@ -4,7 +4,7 @@ import requests
 from urllib.parse import urljoin
 
 AUTH0_DOMAIN = 'firstresonance.auth0.com'
-API_URL = os.getenv('ION_IMPORT_API', 'http://localhost:5000/')
+API_URL = os.getenv('ION_IMPORT_API', 'https://api.firstresonance.io/')
 
 
 class Api(object):
