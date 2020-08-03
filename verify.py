@@ -7,7 +7,7 @@ import pandas as pd
 import sys
 import os
 sys.path.append(os.getcwd())
-from importers import Api
+from importers import Api, API_URL
 
 logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s] - [%(levelname)s] - %(message)s')
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     try:
         api = Api(client_id=args.client_id, client_secret=client_secret)
         print('Successful connection!')
-        print(f'API: {api.API_URL}')
+        print(f'API: {API_URL}')
         print(f'Audience: {api.audience}')
         print(f'Client ID: {api.client_id}')
     except KeyError:
