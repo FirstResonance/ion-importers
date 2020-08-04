@@ -142,7 +142,7 @@ if __name__ == "__main__":
         description='Batch create runs and part inventory from CSV.')
     parser.add_argument('input_file', type=str,
                         help='Path to import CSV file.')
-    # parser.add_argument('--client_id', type=str, help='Your API client ID')
+    parser.add_argument('--client_id', type=str, help='Your API client ID')
     args = parser.parse_args()
     client_secret = getpass('Client secret: ')
     if not args.client_id or not client_secret:

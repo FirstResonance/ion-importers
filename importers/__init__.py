@@ -4,17 +4,16 @@ import requests
 from urllib.parse import urljoin
 
 AUTH0_DOMAIN = 'firstresonance.auth0.com'
-API_URL = os.getenv('ION_IMPORT_API', 'http://localhost:5000/')
+API_URL = os.getenv('ION_IMPORT_API', 'https://api.firstresonance.io/')
 
 
 class Api(object):
     def __init__(self, client_id, client_secret) -> None:
         self.client_id = client_id
         self.client_secret = client_secret
-        self.access_token = None
         self.audience = os.getenv(
             'ION_API_AUDIENCE', 'https://trial-api.firstresonance.io/')
-        self.get_access_token()
+        self.access_token = self.get_access_token()
 
     def get_access_token(self) -> str:
         payload = {
@@ -28,8 +27,7 @@ class Api(object):
 
         auth_url = urljoin(f'https://{AUTH0_DOMAIN}', 'oauth/token')
         res = requests.post(auth_url, json=payload, headers=headers)
-        self.access_token = res.json()['access_token']
-        return self.access_token
+        return res.json()['access_token']
 
     def _get_headers(self) -> dict:
         """
