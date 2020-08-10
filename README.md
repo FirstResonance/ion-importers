@@ -2,7 +2,9 @@
 Import your data into ion from existing systems - PLM, spreadsheets, etc.
 
 ## Authentication
-The API is protected with JWT token authentication, powered by Auth0. Users must be authenticated to retrieve any resource. The importer currently only supports machine to machine authentication using a client id and client secret. To run the import scripts set the following env variables. You can get your client ID and secret by contacting First Resonance (software@firstresonance.io). If you are targeting a non-production API, set your  `ION_API_AUDIENCE` to the API audience for the target API.
+You will need a client ID and a client secret to authenticate to the API. You can get your client ID and secret by contacting First Resonance (software@firstresonance.io). You may want to override the API you are writing to with the following environment variables.
+
+If you are targeting a non-production API, set `ION_IMPORT_API` to the API you are writing to and set your  `ION_API_AUDIENCE` to the API audience for the target API.
 
 ## Setup
 
@@ -77,4 +79,19 @@ Supported Fields for created Parts:
 Run SolidWorks BOM importer:
 ```
 python importers/bom/solidworks/import.py /path/to/solidworks/excel.xlsx --client_id <YOUR_CLIENT_ID>
+```
+
+## Runs
+
+### Bulk Run CSV
+
+Runs can be bulk imported from a CSV format.
+
+The importer will create serial tracked inventory instances for each serial number within the CSV. The part which the inventory entries reference must be previously created.
+
+If no title is specified in the CSV, then a default title is generated using the format `<Part number> - <Serial number> - <Procedure title>`.
+
+Execute Bulk Run CSV importer:
+```
+python importers/run/csv/import.py /path/to/run.csv --client_id <YOUR_CLIENT_ID>
 ```

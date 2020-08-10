@@ -25,7 +25,7 @@ CREATE_PART_INVENTORY = '''
     mutation CreatePartInventory($input: CreatePartInventoryInput!) {
         createPartInventory(input: $input) {
             partInventory {
-                id lotNumber
+                id lotNumber serialNumber part { partNumber }
             }
         }
     }
@@ -74,6 +74,28 @@ GET_PARTS = '''
 query GetParts($filters: PartsInputFilters) {
     parts(filters: $filters) {
         edges {node {id partNumber}}
+    }
+}
+'''
+
+
+GET_PROCEDURES = '''
+query GetProcedures($filters: ProceduresInputFilters) {
+    procedures(filters: $filters) {
+        edges {node {
+            id title
+        }}
+    }
+}
+'''
+
+
+CREATE_RUN = '''
+mutation CreateRun($input: CreateRunInput!) {
+    createRun(input: $input) {
+        run {
+            id title procedureId partInventoryId
+        }
     }
 }
 '''
