@@ -79,7 +79,7 @@ def _bulk_create_part_inventories(api: Api, df: pd.DataFrame, parts_dict: dict) 
     inventory_dict = {}
     for inventory in inventories:
         item = inventory['data']['createPartInventory']['partInventory']
-        inventory_dict[(item['part']['partNumber'], item['serialNumber'])] = item['id']
+        inventory_dict[(item['part']['partNumber'], item['serialNumber'])] = item
     return inventory_dict
 
 
@@ -101,17 +101,22 @@ def _batch_create_runs(api: Api, df: pd.DataFrame, procedures: dict,
     create_mutations = []
     for _, row in df.iterrows():
         procedure_id = row['Procedure (ID)']
-        inventory_id = inventory.get((row["Part number"], row["Serial number"]), None)
+        inventory = inventory.get((row["Part number"], row["Serial number"]), {})
         title = row['Run title (leave blank for default format*)']
         if math.isnan(title):
             procedure = procedures[procedure_id]
             title = f'{row["Part number"]} - {row["Serial number"]} - {procedure}'
         mutation_input = {'title': title, 'procedureId': procedure_id,
-                          'partInventoryId': inventory_id,
+                          'partInventoryId': inventory.get('id', None),
                           'partId': parts[row['Part number']]}
         create_mutations.append(
             {'query': mutations.CREATE_RUN,
              'variables': {'input': mutation_input}})
+        # CREATE ABOM TRACE FOR INVENTORY
+        if inventory:
+            create_mutations.append(
+                {'query': mutations.CREATE_ABOM_FOR_PART_INVENTORY,
+                'variables': {'id': inventory['id'], 'etag': inventory['_etag']}})
     runs = api.send_api_request(create_mutations)
     for run in runs:
         if 'errors' in run and len(run['errors']) > 0:
