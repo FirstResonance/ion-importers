@@ -25,7 +25,7 @@ CREATE_PART_INVENTORY = '''
     mutation CreatePartInventory($input: CreatePartInventoryInput!) {
         createPartInventory(input: $input) {
             partInventory {
-                id lotNumber serialNumber part { partNumber }
+                id _etag lotNumber serialNumber part { partNumber }
             }
         }
     }
@@ -95,6 +95,17 @@ mutation CreateRun($input: CreateRunInput!) {
     createRun(input: $input) {
         run {
             id title procedureId partInventoryId
+        }
+    }
+}
+'''
+
+
+CREATE_ABOM_FOR_PART_INVENTORY = '''
+mutation CreateABomForPartInventory($id: ID!, $etag: String!) {
+    createAbomForPartInventory(id: $id, etag: $etag) {
+        abomItem {
+            id partInventoryId children { id }
         }
     }
 }
