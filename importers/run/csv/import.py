@@ -83,7 +83,7 @@ def _bulk_create_part_inventories(api: Api, df: pd.DataFrame, parts_dict: dict) 
 
 
 def _batch_create_runs(api: Api, df: pd.DataFrame, procedures: dict,
-                       inventory: dict, parts: dict) -> bool:
+                       inventory_dict: dict, parts: dict) -> bool:
     """
     Batch create runs for every row in the import CSV.
 
@@ -100,7 +100,7 @@ def _batch_create_runs(api: Api, df: pd.DataFrame, procedures: dict,
     create_mutations = []
     for _, row in df.iterrows():
         procedure_id = row['Procedure (ID)']
-        inventory = inventory.get((row["Part number"], row["Serial number"]), {})
+        inventory = inventory_dict.get((row["Part number"], row["Serial number"]), {})
         title = row['Run title (leave blank for default format*)']
         if not isinstance(title, str):
             procedure = procedures[procedure_id]
