@@ -1,6 +1,5 @@
 import argparse
 from getpass import getpass
-import math
 import logging
 import pandas as pd
 import sys
@@ -103,7 +102,7 @@ def _batch_create_runs(api: Api, df: pd.DataFrame, procedures: dict,
         procedure_id = row['Procedure (ID)']
         inventory = inventory.get((row["Part number"], row["Serial number"]), {})
         title = row['Run title (leave blank for default format*)']
-        if math.isnan(title):
+        if not isinstance(title, str):
             procedure = procedures[procedure_id]
             title = f'{row["Part number"]} - {row["Serial number"]} - {procedure}'
         mutation_input = {'title': title, 'procedureId': procedure_id,
