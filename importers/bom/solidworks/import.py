@@ -162,6 +162,8 @@ def _get_part_info(row: Tuple) -> dict:
         part_info['description'] = row.Description
     if isinstance(row.VendorNo, str):
         part_info['supplierPartNumber'] = row.VendorNo
+    if isinstance(row.Revision, str) and row.Revision.isalpha():
+        part_info['revision'] = row.Revision
     return part_info
 
 
@@ -183,6 +185,8 @@ def _create_mbom_items(access_token: str, df: pd.DataFrame,
             part_id = _create_part(access_token, part_info)
             part_dict[idx] = part_id
             part_numbers[row['Part Number']] = part_id
+        else:
+            part_dict[idx] = part_numbers[row['Part Number']]
         _create_mbom_item(access_token, row, part_dict, part_numbers)
 
 
@@ -200,7 +204,7 @@ def import_bom(api: Api, input_file: str) -> None:
         bool: Returns true if the BOM was successfully imported
     """
     # Read SolidWorks Level as string to correctly parse hierarchy.
-    df = pd.read_excel(input_file, dtype={'Level': str})
+    df = pd.read_excel(input_file, dtype={'Level': str, 'Part Number': str})
     # Use level as index
     df.set_index('Level', inplace=True)
     # Get top level part from file name
