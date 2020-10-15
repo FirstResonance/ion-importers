@@ -17,7 +17,7 @@ def _get_parts(api: Api, df: pd.DataFrame) -> dict:
 
     Args:
         api (Api): API instance to send authenticated requests
-        df (pd.DataFrame): Dataframe of batch run creation CSV
+        df (pd.DataFrame): Dataframe of excel file passed in arguments
 
     Returns:
         dict: Mapping from part number to part id
@@ -41,7 +41,7 @@ def _bulk_create_part_inventories(api: Api, df: pd.DataFrame, parts: dict) -> bo
 
     Args:
         api (Api): API instance to send authenticated requests
-        df (pd.DataFrame): Dataframe of batch run creation CSV
+        df (pd.DataFrame): Dataframe of excel file passed in arguments
         parts (dict): Mapping from part number to part id
 
     Returns:
@@ -73,7 +73,7 @@ def _bulk_create_parts(api: Api, df: pd.DataFrame, parts: dict) -> bool:
 
     Args:
         api (Api): API instance to send authenticated requests
-        df (pd.DataFrame): Dataframe of batch run creation CSV
+        df (pd.DataFrame): Dataframe of excel file passed in arguments
         parts (dict): Mapping from part number to part id
 
     Returns:
@@ -102,7 +102,7 @@ def import_parts(api: Api, input_file: str) -> bool:
 
     Args:
         api (Api): API instance to send authenticated requests
-        input_file (str): Location of CSV to be imported
+        input_file (str): Location of excel file to be imported
 
     Returns:
         bool: True if import is successful
@@ -119,7 +119,7 @@ def import_inventory(api: Api, input_file: str) -> bool:
 
     Args:
         api (Api): API instance to send authenticated requests
-        input_file (str): Location of CSV to be imported
+        input_file (str): Location of excel file to be imported
 
     Returns:
         bool: True if import is successful
@@ -132,7 +132,7 @@ def import_inventory(api: Api, input_file: str) -> bool:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='Batch create parts and part inventory from CSV.')
+        description='Batch create parts and part inventory from Excel file.')
     parser.add_argument('input_file', type=str,
                         help='Path to import Excel file.')
     parser.add_argument('--client_id', type=str, help='Your API client ID')
