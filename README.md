@@ -35,6 +35,33 @@ To import any transformed inventory CSV into ION run the following command.
 python importers/inventory/import.py /path/to/upload.csv --client_id <YOUR_CLIENT_ID>
 ```
 
+### Excel
+
+We currently support importing parts and inventory from an excel file providing it contains the correct columns and format
+
+Supported Fields For Parts:
+* Part Number (required)
+* Description
+* Tracking Level (valid options [Lot, Serial])
+
+Supported Fields For Inventory:
+* Part Number (required)
+* Description
+* Serial Number
+* Lot Number
+* Quantity
+
+Run excel importer for parts:
+```
+python importers/inventory/excel/import.py /path/to/excel_file --client_id=<client id> --type parts
+```
+Note that if no type is specified is defaults to parts
+
+Run excel importer for inventory:
+```
+python importers/inventory/excel/import.py /path/to/excel_file --client_id=<client id> --type inventory
+```
+
 ### Fishbowl Transformer
 
 We currently support importing inventory from fishbowl. Both part metadata as well as inventory tracked lot and serial parts.
