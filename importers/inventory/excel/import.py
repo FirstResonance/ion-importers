@@ -25,7 +25,9 @@ def _get_parts(api: Api, df: pd.DataFrame) -> dict:
     query_info = {
         'query': mutations.GET_PARTS,
         'variables': {
-            'filters': {'partNumber': {'in': df['Part Number'].unique().tolist()}}
+            'filters': {
+                'partNumber': {'in': df['Part Number'].unique().tolist()},
+                'isLatestRevision': {'eq': True}}
         }
     }
     query_data = api.send_api_request(query_info)
@@ -33,7 +35,31 @@ def _get_parts(api: Api, df: pd.DataFrame) -> dict:
             for edge in query_data['data']['parts']['edges']}
 
 
-def _bulk_create_part_inventories(api: Api, df: pd.DataFrame, parts: dict) -> bool:
+def _get_locations(api: Api, df: pd.DataFrame) -> dict:
+    """
+    Get ids for all location names in the excel sheet.
+
+    Args:
+        api (Api): API instance to send authenticated requests
+        df (pd.DataFrame): Dataframe of excel file passed in arguments
+
+    Returns:
+        dict: Mapping from location name to location id
+    """
+    query_info = {
+        'query': mutations.GET_LOCATIONS,
+        'variables': {
+            'filters': {
+                'name': {'in': df['Location'].unique().tolist()}}
+        }
+    }
+    query_data = api.send_api_request(query_info)
+    return {edge['node']['name']: edge['node']['id']
+            for edge in query_data['data']['locations']['edges']}
+
+
+def _bulk_create_part_inventories(api: Api, df: pd.DataFrame, parts: dict,
+                                  locations: dict) -> bool:
     """
     Bulk create inventory items for every row in excel.
 
@@ -54,9 +80,13 @@ def _bulk_create_part_inventories(api: Api, df: pd.DataFrame, parts: dict) -> bo
                             f'{row["Part Number"]} does not exist.')
             continue
         quantity = row['Quantity'] if row['Serial Number'] is None else 1
+        location = None
+        if row['Location'] in locations:
+            location = locations[row['Location']]
         mutation_input = {
             'serialNumber': row['Serial Number'], 'quantity': quantity,
-            'partId': parts[row['Part Number']], 'lotNumber': row['Lot Number']}
+            'partId': parts[row['Part Number']], 'lotNumber': row['Lot Number'],
+            'locationId': location}
         create_mutations.append(
             {'query': mutations.CREATE_PART_INVENTORY,
              'variables': {'input': mutation_input}})
@@ -127,7 +157,8 @@ def import_inventory(api: Api, input_file: str) -> bool:
     df = pd.read_excel(input_file, dtype={'Part Number': str, 'Serial Number': str})
     df = df.where(df.notnull(), None)
     parts_dict = _get_parts(api, df)
-    return _bulk_create_part_inventories(api, df, parts_dict)
+    locations_dict = _get_locations(api, df)
+    return _bulk_create_part_inventories(api, df, parts_dict, locations_dict)
 
 
 if __name__ == "__main__":
