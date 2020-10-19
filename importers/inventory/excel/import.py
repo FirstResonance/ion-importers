@@ -116,7 +116,7 @@ def _bulk_create_parts(api: Api, df: pd.DataFrame, parts: dict) -> bool:
                 f'Cannot create part {row["Part Number"]} because it already exists.')
         mutation_input = {
             'partNumber': row['Part Number'], 'description': row['Description'],
-            'trackingType': row['Tracking Level'].upper(), 'revision': row['Revision']}
+            'trackingType': row['Tracking Level'].upper()}
         create_mutations.append(
             {'query': mutations.CREATE_PART, 'variables': {'input': mutation_input}})
     parts = api.send_api_request(create_mutations)
