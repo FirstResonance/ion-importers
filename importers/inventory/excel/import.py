@@ -97,20 +97,20 @@ def _bulk_create_part_inventories(api: Api, df: pd.DataFrame, parts: dict,
     return True
 
 
-def _create_mbom(api: Api, mbom_struct: dict, parts: dict) -> bool:
+def _create_mbom(api: Api, mbom_map: dict, parts: dict) -> bool:
     """
     Batch create MBOM items for every part in the import excel.
 
     Args:
         api (Api): API instance to send authenticated requests
-        mbom_struct (dict): Mapping of part number to parent part and quantity
+        mbom_map (dict): Mapping of part number to parent part and quantity
         parts (dict): Mapping from part number to part id
 
     Returns:
         bool: True if part import was successful.
     """
     create_mutations = []
-    for part_number, mbom_item in mbom_struct.items():
+    for part_number, mbom_item in mbom_map.items():
         if mbom_item['parent'] in parts and part_number in parts:
             mutation_input = {
                 'partId': parts[part_number], 'parentId': parts[mbom_item['parent']],
@@ -127,7 +127,21 @@ def _create_mbom(api: Api, mbom_struct: dict, parts: dict) -> bool:
 
 def _bulk_create_parts(api: Api, df: pd.DataFrame, parts: dict) -> bool:
     """
-    Batch create parts for every row in the import excel.
+    Batch create parts and MBOM relations for every row in the import excel file.
+
+    For each row representing a part, there is also a depth and quantity column which
+    define its MBOM relations. Depth is an int value defining a part as a child to
+    another part which is the first instance of the current row's depth - 1.
+    Example Rows:
+    Depth   Part Number
+    1       fr-1
+    2       fr-2
+    3       fr-3
+    3       fr-4
+    2       fr-5
+
+    This defines fr-1 as the top level assembly with children fr-2 and fr-5.
+    Also fr-3 and fr-4 represent the MBOM for fr-2.
 
     Args:
         api (Api): API instance to send authenticated requests
@@ -137,7 +151,7 @@ def _bulk_create_parts(api: Api, df: pd.DataFrame, parts: dict) -> bool:
     Returns:
         bool: True if part import was successful.
     """
-    mbom_struct = {}
+    mbom_map = {}
     create_mutations = []
     depth = 0
     parent_part_queue = []
@@ -154,8 +168,8 @@ def _bulk_create_parts(api: Api, df: pd.DataFrame, parts: dict) -> bool:
         else:
             parent_part_queue[-1] = row["Part Number"]
         if len(parent_part_queue) > 1:
-            mbom_struct[row['Part Number']] = {'parent': parent_part_queue[-2],
-                                               'quantity': row['Quantity']}
+            mbom_map[row['Part Number']] = {'parent': parent_part_queue[-2],
+                                            'quantity': row['Quantity']}
         depth = row['Depth']
         mutation_input = {
             'partNumber': row['Part Number'], 'description': row['Description'],
@@ -171,7 +185,7 @@ def _bulk_create_parts(api: Api, df: pd.DataFrame, parts: dict) -> bool:
         else:
             p = part['data']['createPart']['part']
             parts_dict[p['partNumber']] = p['id']
-    return _create_mbom(api, mbom_struct, parts_dict)
+    return _create_mbom(api, mbom_map, parts_dict)
 
 
 def import_parts(api: Api, input_file: str) -> bool:
