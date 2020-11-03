@@ -43,6 +43,9 @@ Supported Fields For Parts:
 * Part Number (required)
 * Description
 * Tracking Level (valid options [Lot, Serial])
+* Depth: Int value describing the MBOM structure
+* Revision: String value which can only contain alphabetic text
+* Quantity: MBOM quantity
 
 Supported Fields For Inventory:
 * Part Number (required)
